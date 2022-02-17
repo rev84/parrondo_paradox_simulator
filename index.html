@@ -29,12 +29,14 @@
   </nav>
 
   <div class="container">
-    <div>
-      <button id="start" class="btn btn-primary">スタート</button>
+    <div class="start">
+      <h1><a href="https://www.google.com/search?q=%E3%83%91%E3%83%AD%E3%83%B3%E3%83%89%E3%81%AE%E3%83%91%E3%83%A9%E3%83%89%E3%83%83%E3%82%AF%E3%82%B9" target="_blank">パロンドのパラドックス</a>　シミュレータ</h1>
+      <p>期待値マイナスのゲームを組み合わせて、期待値プラスのゲームを作れるのか</p>
+      <button id="start" class="btn btn-primary btn-lg">スタート</button>
     </div>
     <div id="games">
       <div id="game_main" class="game">
-        本命ゲーム
+        <h2>本命ゲーム</h2>
         <table id="game_table_main" class="table table-bordered">
           <thead>
             <tr>
@@ -46,7 +48,7 @@
         </table>
       </div>
       <div id="game_a" class="game">
-        ゲームA
+        <h2>ゲームA</h2>
         <table id="game_table_a" class="table table-bordered">
           <thead>
             <tr>
@@ -58,7 +60,7 @@
         </table>
       </div>
       <div id="game_b" class="game">
-        ゲームB
+        <h2>ゲームB</h2>
         <table id="game_table_b" class="table table-bordered">
           <thead>
             <tr>
@@ -71,19 +73,84 @@
       </div>
     </div>
 
+    <div>
+      <div id="summary_game_main" class="summary">
+        <table class="table table-bordered">
+          <tr>
+            <th>試行回数</th>
+            <td id="step_game_main" class="step"></td>
+          </tr>
+          <tr>
+            <th>所持金</th>
+            <td id="money_game_main" class="money"></td>
+          </tr>
+          <tr>
+            <th>1回あたり</th>
+            <td id="dps_game_main" class="dps"></td>
+          </tr>
+        </table>
+      </div>
+      <div id="summary_game_a" class="summary">
+        <table class="table table-bordered">
+          <tr>
+            <th>試行回数</th>
+            <td id="step_game_a" class="step"></td>
+          </tr>
+          <tr>
+            <th>所持金</th>
+            <td id="money_game_a" class="money"></td>
+          </tr>
+          <tr>
+            <th>1回あたり</th>
+            <td id="dps_game_a" class="dps"></td>
+          </tr>
+        </table>
+      </div>
+      <div id="summary_game_b" class="summary">
+        <table class="table table-bordered">
+          <tr>
+            <th>試行回数</th>
+            <td id="step_game_b" class="step"></td>
+          </tr>
+          <tr>
+            <th>所持金</th>
+            <td id="money_game_b" class="money"></td>
+          </tr>
+          <tr>
+            <th>1回あたり</th>
+            <td id="dps_game_b" class="dps"></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
     <div id="recents">
-      <div id="recent_main" class="recent">
-        <canvas id="recent_main"></canvas>
-      </div>
-      <div id="recent_a" class="recent">
-        <canvas id="recent_a"></canvas>
-      </div>
-      <div id="recent_b" class="recent">
-        <canvas id="recent_b"></canvas>
+      <h2>過去1000回</h2>
+      <div>
+        <div id="recent_main" class="recent">
+          <canvas id="recent_game_main"></canvas>
+        </div>
+        <div id="recent_a" class="recent">
+          <canvas id="recent_game_a"></canvas>
+        </div>
+        <div id="recent_b" class="recent">
+          <canvas id="recent_game_b"></canvas>
+        </div>
       </div>
     </div>
     <div id="all">
-      
+      <h2>100回ごと</h2>
+      <div>
+        <div id="all_main" class="all">
+          <canvas id="all_game_main"></canvas>
+        </div>
+        <div id="all_a" class="all">
+          <canvas id="all_game_a"></canvas>
+        </div>
+        <div id="all_b" class="all">
+          <canvas id="all_game_b"></canvas>
+        </div>
+      </div>
     </div>
   </div>
 </body>

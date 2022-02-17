@@ -8,11 +8,15 @@ table td {
   text-align: center;
 }
 
-.game, .recent, .all {
+.game, .summary, .recent, .all {
   display: inline-block;
-  width: 30%;
+  width: 32%;
 }
 th {
-  background-color: black !important;
+  background-color: gray !important;
   color: white;
+}
+.start {
+  margin: 10px;
+  text-align: center;
 }

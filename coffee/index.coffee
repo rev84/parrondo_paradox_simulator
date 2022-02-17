@@ -1,14 +1,16 @@
-window.moneys = {}
-window.money_histories = {}
+window.INTERVAL_SEC = 1
+
 window.status = {}
+window.logs = {}
 window.games = {}
-window.step = 0
+window.charts = {}
 window.titles = [
   '所持金3n',
   '所持金3n+1',
   '所持金3n+2',
 ]
 window.main_game = {
+  title: '本命ゲーム'
   p: {
     game_a: 0.5,
     game_b: 0.5
@@ -53,61 +55,103 @@ window.DEFAULT_GAMES = {
   }
 }
 
-window.timer = null;
+window.timer = null
 
 $().ready ->
+  init_charts()
   init()
   $('#start').on 'click', ->
-    if window.timer is null then stop() else start()
+    if window.timer is null then start() else stop()
 
 start = ->
   stop()
   init()
-  startInterval
+  window.timer = setTimeout(calc, window.INTERVAL_SEC)
 
 stop = ->
-  clearInterval window.timer if window.timer is null
+  clearInterval window.timer unless window.timer is null
   window.timer = null
 
-calc = ->
+calc = (id)->
+  calc_main()
+  calc_game('game_a')
+  calc_game('game_b')
+  setTimeout(calc, window.INTERVAL_SEC) unless window.timer is null
 
 calc_main = ->
   seed = lot()
   p_total = 0
+  selected_game_name = undefined
   Object.keys(window.main_game.p).map (game_name)->
     p = window.main_game.p[game_name]
     p_total += p
-    if seed < p_total
+    selected_game_name = game_name if seed < p_total and selected_game_name is undefined
 
-play_game = (id, status_before)->
+  result = play_game(selected_game_name, window.statuses['game_main'].state)
+  push('game_main', result)
+  draw('recent_game_main', window.logs.game_main.status_recent_logs)
+  draw('all_game_main', window.logs.game_main.status_all_logs)
+
+calc_game = (id)->
+  result = play_game(id, window.statuses[id].state)
+  push(id, result)
+  draw('recent_'+id, window.logs[id].status_recent_logs)
+  draw('all_'+id, window.logs[id].status_all_logs)
+
+push = (id, result)->
+  window.statuses[id].step += 1
+  window.statuses[id].money += result.gain
+  window.statuses[id].state = result.state
+  $('#step_'+id).html(window.statuses[id].step)
+  $('#money_'+id).html(format_money(window.statuses[id].money))
+  $('#dps_'+id).html(format_money(window.statuses[id].money / window.statuses[id].step, 5))
+
+  
+  window.logs[id].status_all_logs.push(window.statuses[id].clone()) unless window.statuses[id].step % 100
+  window.logs[id].status_recent_logs.push(window.statuses[id].clone())
+  window.logs[id].status_recent_logs.shift() if window.logs[id].status_recent_logs.length > 1000
+
+draw = (id, statuses)->
+  return if statuses.length <= 0
+  window.charts[id].data.datasets[0].data = statuses.map (v)-> v.money
+  window.charts[id].data.labels = statuses.map (v)-> v.step
+  window.charts[id].update()
+
+play_game = (id, state_before)->
   game = window.games[id]
   seed = lot()
   p_total = 0
   selected_index = undefined
-  game.p[status_before].map (p, index)->
+  game.p[state_before].map (p, index)->
     p_total += p
     selected_index = index if seed < p_total and selected_index is undefined
 
-  status = game.to[status_before][selected_index]
-  gain = game.to[status_before][selected_index]
+  state = game.to[state_before][selected_index]
+  gain = game.gain[state_before][selected_index]
 
-  {status: status, gain: gain}
+  {state: state, gain: gain}
 
 init = ->
   window.games = window.DEFAULT_GAMES;
   init_st()
   reflect_games()
   reflect_main_game()
+  ['game_main'].concat(Object.keys(window.main_game.p)).map (game_name)->
+    window.logs[game_name].status_all_logs.push(window.statuses[game_name].clone())
+    window.logs[game_name].status_recent_logs.push(window.statuses[game_name].clone())
+
+init_charts = ->
+  ['game_main'].concat(Object.keys(window.main_game.p)).map (game_name)->
+    window.charts['recent_'+game_name] = chart_default('recent_'+game_name)
+    window.charts['all_'+game_name] = chart_default('all_'+game_name)
 
 init_st = ->
-  window.moneys = {game_main: 0}
-  window.status = {game_main: 0}
-  window.money_histories = {game_main: 0}
   window.step = 0
-  Object.keys(window.main_game.p).map (game_name)->
-    window.moneys[game_name] = 0
-    window.status[game_name] = 0
-    window.money_histories[game_name] = [0]
+  window.statuses = {}
+  window.logs = {}
+  ['game_main'].concat(Object.keys(window.main_game.p)).map (game_name)->
+    window.statuses[game_name] = new Status(0, 0, 0)
+    window.logs[game_name] = logs_default()
 
 reflect_main_game = ->
   thead = $('#game_main thead')
@@ -152,8 +196,7 @@ reflect_games = ->
       )
       v.map (p, to_index)->
         gain = window.games[k].gain[index][to_index]
-        text = (p * 100)+"%<br>"+
-              (if gain < 0 then '<span class="red">-$' else '<span class="blue">$')+Math.abs(gain)+'</span>'
+        text = (p * 100)+"%<br>"+format_money(gain)
         tr.append(
           $('<td>').html(
             if p is 0 then '-' else text
@@ -174,3 +217,48 @@ set_game = (id, to_array, gain_array)->
 
 lot = ->
   Math.random()
+
+logs_default = ->
+  {
+    status_all_logs: []
+    status_recent_logs: []
+  }
+
+chart_default = (id)->
+  new Chart(document.getElementById(id).getContext('2d'), {
+    type: 'line'
+    data:
+      labels: []
+      datasets:[{
+        data: [],
+        steppedLine: false
+        datalabels: 
+          display: false
+        showLine: true
+        borderColor: 'rgb(0, 0, 255)'
+        pointRadius: 0
+        borderWidth: 1
+      }]
+    options:
+      animation: false
+      plugins:
+        legend:
+          display: false
+  })
+
+format_money = (money, fixed = 0)->
+  amount = Math.abs(money)
+  amount = amount.toFixed(fixed) if fixed > 0
+  if money < 0
+    '<span class="red">-$'+amount+'</span>'
+  else
+    '<span class="blue">+$'+amount+'</span>'
+
+class Status
+  constructor:(@step = 0, @money = 0, @state = 0)->
+  clone:->
+    new Status(
+      @step,
+      @money,
+      @state
+    )
