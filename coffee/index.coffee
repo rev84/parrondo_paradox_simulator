@@ -261,9 +261,9 @@ format_money = (money, fixed = 0)->
   amount = Math.abs(money)
   amount = amount.toFixed(fixed) if fixed > 0
   if money < 0
-    '<span class="red">-$'+amount+'</span>'
+    '<span class="red">-'+amount+'$</span>'
   else
-    '<span class="blue">+$'+amount+'</span>'
+    '<span class="blue">+'+amount+'$</span>'
 
 class Status
   constructor:(@step = 0, @money = 0, @state = 0)->

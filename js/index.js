@@ -292,9 +292,9 @@ format_money = function(money, fixed = 0) {
     amount = amount.toFixed(fixed);
   }
   if (money < 0) {
-    return '<span class="red">-$' + amount + '</span>';
+    return '<span class="red">-' + amount + '$</span>';
   } else {
-    return '<span class="blue">+$' + amount + '</span>';
+    return '<span class="blue">+' + amount + '$</span>';
   }
 };
 
