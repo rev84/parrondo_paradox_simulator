@@ -1,6 +1,7 @@
 window.INTERVAL_SEC = 1
 
-window.status = {}
+window.draw_count = 1
+window.statuses = {}
 window.logs = {}
 window.games = {}
 window.charts = {}
@@ -62,6 +63,8 @@ $().ready ->
   init()
   $('#start').on 'click', ->
     if window.timer is null then start() else stop()
+  $('#draw_count').on 'change', ->
+    window.draw_count = Number $(@).val()
 
 start = ->
   stop()
@@ -89,33 +92,40 @@ calc_main = ->
 
   result = play_game(selected_game_name, window.statuses['game_main'].state)
   push('game_main', result)
-  draw('recent_game_main', window.logs.game_main.status_recent_logs)
-  draw('all_game_main', window.logs.game_main.status_all_logs)
+  draw_graph('game_main', 'recent_game_main', window.logs.game_main.status_recent_logs)
+  draw_graph('game_main', 'all_game_main', window.logs.game_main.status_all_logs)
+  draw_summary('game_main')
 
 calc_game = (id)->
   result = play_game(id, window.statuses[id].state)
   push(id, result)
-  draw('recent_'+id, window.logs[id].status_recent_logs)
-  draw('all_'+id, window.logs[id].status_all_logs)
+  draw_graph(id, 'recent_'+id, window.logs[id].status_recent_logs)
+  draw_graph(id, 'all_'+id, window.logs[id].status_all_logs)
+  draw_summary(id)
 
 push = (id, result)->
   window.statuses[id].step += 1
   window.statuses[id].money += result.gain
   window.statuses[id].state = result.state
-  $('#step_'+id).html(window.statuses[id].step)
-  $('#money_'+id).html(format_money(window.statuses[id].money))
-  $('#dps_'+id).html(format_money(window.statuses[id].money / window.statuses[id].step, 5))
-
   
   window.logs[id].status_all_logs.push(window.statuses[id].clone()) unless window.statuses[id].step % 100
   window.logs[id].status_recent_logs.push(window.statuses[id].clone())
   window.logs[id].status_recent_logs.shift() if window.logs[id].status_recent_logs.length > 1000
 
-draw = (id, statuses)->
+draw_summary = (id)->
+  return if window.statuses[id].step % window.draw_count
+
+  $('#step_'+id).html(window.statuses[id].step)
+  $('#money_'+id).html(format_money(window.statuses[id].money))
+  $('#dps_'+id).html(format_money(window.statuses[id].money / window.statuses[id].step, 5))
+
+draw_graph = (id, graph_id, statuses)->
   return if statuses.length <= 0
-  window.charts[id].data.datasets[0].data = statuses.map (v)-> v.money
-  window.charts[id].data.labels = statuses.map (v)-> v.step
-  window.charts[id].update()
+  return if window.statuses[id].step % window.draw_count
+
+  window.charts[graph_id].data.datasets[0].data = statuses.map (v)-> v.money
+  window.charts[graph_id].data.labels = statuses.map (v)-> v.step
+  window.charts[graph_id].update()
 
 play_game = (id, state_before)->
   game = window.games[id]
@@ -136,6 +146,7 @@ init = ->
   init_st()
   reflect_games()
   reflect_main_game()
+  window.draw_count = Number $('#draw_count').val()
   ['game_main'].concat(Object.keys(window.main_game.p)).map (game_name)->
     window.logs[game_name].status_all_logs.push(window.statuses[game_name].clone())
     window.logs[game_name].status_recent_logs.push(window.statuses[game_name].clone())

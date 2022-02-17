@@ -20,3 +20,7 @@ th {
   margin: 10px;
   text-align: center;
 }
+#draw_count {
+  width: 100px;
+  text-align: right;
+}
